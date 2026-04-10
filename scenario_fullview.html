@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>シナリオ全文ビュー - MANA・ゆる薬膳オフ会</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    gap: 30px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 24px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background: #fafafa;
+  }
+
+  .legend-title {
+    width: 100%;
+    font-size: 14px;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 4px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #555;
+  }
+
+  .legend-color {
+    width: 28px;
+    height: 18px;
+    border-radius: 10px;
+    border: 2px solid;
+    flex-shrink: 0;
+  }
+
+  .legend-color.l-root { background: #4a90d9; border-color: #3a7bc8; }
+  .legend-color.l-empathy { background: #e8f4e8; border-color: #7bc67b; border-style: dashed; }
+  .legend-color.l-info { background: #f0f0f0; border-color: #ccc; }
+  .legend-color.l-survey { background: #fff3cd; border-color: #f0c040; border-style: dashed; }
+  .legend-color.l-trust { background: #eef6fc; border-color: #85b8d9; }
+  .legend-color.l-cta { background: #fdf6e3; border-color: #e0b84f; }
+  .legend-color.l-closing { background: #fceaea; border-color: #d98a8a; }
+  .legend-color.l-disabled { background: #e8e8e8; border-color: #bbb; }
+
+  .mindmap {
+    display: flex;
+    align-items: flex-start;
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 20px;
+  }
+
+  .node-card {
+    min-width: 240px;
+    max-width: 280px;
+    border-radius: 16px;
+    border: 2px solid #ccc;
+    background: #f0f0f0;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .node-card .card-header {
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #333;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .node-card .card-meta {
+    padding: 6px 16px;
+    font-size: 11px;
+    color: #888;
+    line-height: 1.5;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .node-card .card-body {
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.8;
+    white-space: pre-line;
+    color: #333;
+  }
+
+  .node-card.root { background: #4a90d9; border-color: #3a7bc8; }
+  .node-card.root .card-header { color: #fff; border-bottom-color: rgba(255,255,255,0.2); }
+  .node-card.root .card-body { color: #fff; font-size: 14px; }
+
+  .node-card.empathy { background: #e8f4e8; border: 2px dashed #7bc67b; }
+  .node-card.empathy .card-header { color: #3a7a3a; }
+
+  .node-card.info { background: #f0f0f0; border-color: #ccc; }
+
+  .node-card.survey { background: #fff8e1; border: 2px dashed #f0c040; }
+  .node-card.survey .card-header { color: #a07800; }
+
+  .node-card.trust { background: #eef6fc; border-color: #85b8d9; }
+  .node-card.trust .card-header { color: #3a7bc8; }
+
+  .node-card.cta { background: #fdf6e3; border-color: #e0b84f; }
+  .node-card.cta .card-header { color: #a07800; }
+
+  .node-card.closing { background: #fceaea; border-color: #d98a8a; }
+  .node-card.closing .card-header { color: #a04040; }
+
+  .node-card.disabled { background: #f2f2f2; border-color: #bbb; }
+  .node-card.disabled .card-header { color: #999; }
+  .node-card.disabled .card-body { color: #999; }
+
+  .node-card.branch-label {
+    min-width: 120px;
+    max-width: 140px;
+    background: #f8f8f8;
+    border-color: #ccc;
+  }
+  .node-card.branch-label .card-header { font-size: 13px; }
+
+  .connector { width: 32px; min-width: 32px; height: 2px; background: #999; flex-shrink: 0; align-self: center; }
+  .to-branch { width: 32px; min-width: 32px; height: 2px; background: #999; flex-shrink: 0; align-self: center; }
+  .merge-connector { width: 32px; min-width: 32px; height: 2px; background: #999; flex-shrink: 0; align-self: center; }
+
+  .branch-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .branch-group::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50px;
+    bottom: 50px;
+    width: 2px;
+    background: #999;
+  }
+
+  .branch-row { display: flex; align-items: flex-start; }
+
+  .branch-connector {
+    width: 24px;
+    min-width: 24px;
+    height: 2px;
+    background: #999;
+    flex-shrink: 0;
+    margin-top: 24px;
+  }
+
+  .step-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .step-label {
+    font-size: 11px;
+    color: #888;
+    padding-left: 4px;
+  }
+
+  @media print {
+    body { padding: 20px; }
+    .mindmap { overflow: visible; }
+  }
+</style>
+</head>
+<body>
+
+<div class="legend">
+  <div class="legend-title">🌿 ゆる薬膳オフ会シナリオ ─ 全文ビュー</div>
+  <div class="legend-item"><div class="legend-color l-root"></div>起点（シナリオ開始）</div>
+  <div class="legend-item"><div class="legend-color l-empathy"></div>導入・共感（点線）</div>
+  <div class="legend-item"><div class="legend-color l-info"></div>価値提供</div>
+  <div class="legend-item"><div class="legend-color l-survey"></div>アンケート（点線）</div>
+  <div class="legend-item"><div class="legend-color l-trust"></div>信頼構築・関係深化</div>
+  <div class="legend-item"><div class="legend-color l-cta"></div>オフ会告知・CTA</div>
+  <div class="legend-item"><div class="legend-color l-closing"></div>クロージング</div>
+  <div class="legend-item"><div class="legend-color l-disabled"></div>分岐終了</div>
+</div>
+
+<div class="mindmap">
+
+  <!-- 起点 -->
+  <div class="node-card root">
+    <div class="card-header">🌿 MANA 整え日記 LINE</div>
+    <div class="card-body">既存フォロワーへ
+薬膳シナリオ開始
+（30日間・全10通）</div>
+  </div>
+  <div class="connector"></div>
+
+  <!-- 1通目 -->
+  <div class="step-group">
+    <div class="step-label">Day 1 ×2吹き出し</div>
+    <div class="node-card empathy">
+      <div class="card-header">1通目：導入・共感🌿</div>
+      <div class="card-meta">通知：「40代、なんとなく不調が続いていませんか？」</div>
+      <div class="card-body">【吹き出し1】
+
+こんにちは、MANAです🌿✨
+
+突然ですが
+最近こんなこと感じていませんか？
+
+☁️ 朝起きても疲れが抜けない
+🧊 手足がいつも冷たい
+🌀 胃腸の調子がなんだか不安定
+
+40代に入ってから
+「無理ができない自分」を
+どんどん実感するようになって💦
+
+実は私もずっとそうだったんです
+
+─────────────
+
+【吹き出し2】
+
+🍀これから何回かに分けて
+私が続けている
+"ゆる薬膳"のお話をしますね
+
+通知が気になる方は
+ミュート設定もできるので
+ご自身のペースで
+読んでもらえたらうれしいです🥰</div>
+    </div>
+  </div>
+  <div class="connector"></div>
+
+  <!-- 2通目 -->
+  <div class="step-group">
+    <div class="step-label">Day 4 ×2吹き出し</div>
+    <div class="node-card info">
+      <div class="card-header">2通目：価値提供・気づき🛒</div>
+      <div class="card-meta">通知：「スーパーの"あの食材"、実は体を冷やしてました」</div>
+      <div class="card-body">【吹き出し1】
+
+MANAです🌿
+
+ふだんスーパーで手に取る食材🛒
+「体を温めるもの」と
+「冷やすもの」があるって
+知っていますか？
+
+🔥温める → しょうが・ねぎ
+🧊冷やす → トマト・きゅうり
+
+夏野菜は体を冷やす性質があって
+冷え性の人が冬に食べすぎると
+逆効果になることも⚠️
+
+私もこれを知ったとき
+「毎日サラダ食べてたけど
+　逆に冷やしてたんだ…😳」って
+びっくりしました
+
+─────────────
+
+【吹き出し2】
+
+🍀次回はもう少し詳しく
+体質タイプ別のお話をしますね
+
+ちょっとした知識で
+毎日の買い物が変わりますよ✨</div>
+    </div>
+  </div>
+  <div class="connector"></div>
+
+  <!-- 3通目 -->
+  <div class="step-group">
+    <div class="step-label">Day 7 ×2吹き出し</div>
+    <div class="node-card survey">
+      <div class="card-header">3通目：アンケート①📩</div>
+      <div class="card-meta">通知：「体質は大きく5タイプ、あなたはどれ？」
+CTA：アンケート回答</div>
+      <div class="card-body">【吹き出し1】
+
+MANAです🌿
+
+薬膳の世界では
+体質を大きく5つのタイプに
+分けて考えます✨
+
+🧊 冷えやすいタイプ
+😴 疲れやすいタイプ
+🌀 胃腸が弱いタイプ
+🌸 肌が揺らぎやすいタイプ
+💭 ストレスを溜めやすいタイプ
+
+タイプによって
+合う食材が全然違うんです💡
+
+自分がどのタイプか
+気になりませんか？
+
+─────────────
+
+【吹き出し2】
+
+📩 よかったら教えてください🥰
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+あなたが一番気になる不調は
+どれですか？
+┈┈┈┈┈┈┈┈┈┈┈┈
+
+▼タップで回答▼
+① 🧊 冷え
+② 😴 疲れやすさ
+③ 🌀 胃腸の不調
+④ 🌸 肌の揺らぎ
+⑤ 🙅‍♀️ 特にない
+
+回答いただけたら
+タイプに合った食材のお話を
+お届けしますね💕</div>
+    </div>
+  </div>
+  <div class="to-branch"></div>
+
+  <!-- 分岐① -->
+  <div class="branch-group">
+    <!-- 関心あり -->
+    <div class="branch-row">
+      <div class="branch-connector"></div>
+      <div class="node-card branch-label">
+        <div class="card-header">①〜④選択<br>（関心あり）</div>
+      </div>
+      <div class="connector"></div>
+
+      <!-- 4通目 -->
+      <div class="step-group">
+        <div class="step-label">Day 10 ×2吹き出し</div>
+        <div class="node-card info">
+          <div class="card-header">4通目：体質別食材🛒</div>
+          <div class="card-meta">通知：「あなたのタイプに合う"スーパー食材"3選」</div>
+          <div class="card-body">【吹き出し1】
+
+MANAです🌿
+
+アンケートへの回答
+ありがとうございました🙏✨
+
+今日はタイプ別に
+スーパーで買える
+おすすめ食材を紹介しますね🛒
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+🧊 冷えタイプ
+→ しょうが・ねぎ・かぼちゃ
+
+😴 疲れタイプ
+→ 山芋・鶏むね肉・なつめ
+
+🌀 胃腸タイプ
+→ キャベツ・大根・お米
+
+🌸 肌揺らぎタイプ
+→ 白きくらげ・豆乳・はと麦
+┈┈┈┈┈┈┈┈┈┈┈┈
+
+どれも特別なものじゃなくて
+いつものスーパーに
+並んでます💡
+
+─────────────
+
+【吹き出し2】
+
+私は疲れ＋冷えタイプで🙋‍♀️
+しょうがと山芋を
+意識して取り入れるようにしたら
+朝の調子が変わりました✨
+
+まずは1つだけ🍀
+今日の買い物で
+試してみてください🥰</div>
+        </div>
+      </div>
+      <div class="connector"></div>
+
+      <!-- 5通目 -->
+      <div class="step-group">
+        <div class="step-label">Day 13 ×2吹き出し</div>
+        <div class="node-card trust">
+          <div class="card-header">5通目：信頼構築💬</div>
+          <div class="card-meta">通知：「試した方から"朝が変わった"の声が届いてます」</div>
+          <div class="card-body">【吹き出し1】
+
+MANAです🌿
+
+前回の食材の話に
+メッセージをくれた方が
+何人かいらっしゃって💌
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+💬「しょうがを意識したら
+　朝の目覚めがラクに✨」
+
+💬「かぼちゃスープを
+　週2で作るようになりました🎃」
+┈┈┈┈┈┈┈┈┈┈┈┈
+
+こういう声をいただくと
+本当にうれしくなります🥹
+
+難しいことじゃなくて
+いつもの食材をちょっと意識する
+それだけで変わるんですよね💡
+
+─────────────
+
+【吹き出し2】
+
+私もまだまだ勉強中ですが🍀
+ゆる薬膳をもっと
+深めていきたいなと思ってて
+
+実はちょっと
+考えていることがあるんです🤭
+
+また近いうちに
+お話しさせてくださいね🥰</div>
+        </div>
+      </div>
+      <div class="connector"></div>
+
+      <!-- 6通目 -->
+      <div class="step-group">
+        <div class="step-label">Day 16 ×2吹き出し</div>
+        <div class="node-card trust">
+          <div class="card-header">6通目：関係性深化🍵</div>
+          <div class="card-meta">通知：「私がオフ会をやりたいと思った理由」</div>
+          <div class="card-body">【吹き出し1】
+
+MANAです🌿
+
+前回ちらっとお話しした
+「考えていること」🤭
+
+実は薬膳のことを
+リアルで一緒に学べる場を
+作りたいなと思っていて✨
+
+手帳のオフ会をやったとき🗓️
+画面越しじゃなくて
+直接会って話すことで
+生まれるものがあるって
+すごく感じたんです
+
+あのアットホームな空気感を
+薬膳でもやりたいなって🍵
+
+─────────────
+
+【吹き出し2】
+
+一人で食材を調べるより
+みんなで「これいいよ✨」って
+教え合えたら
+楽しそうだなって🥰
+
+もし興味があったら
+次のメッセージで
+ちょっと聞かせてくださいね💕</div>
+        </div>
+      </div>
+      <div class="connector"></div>
+
+      <!-- 7通目 -->
+      <div class="step-group">
+        <div class="step-label">Day 19 ×2吹き出し</div>
+        <div class="node-card survey">
+          <div class="card-header">7通目：アンケート②📩</div>
+          <div class="card-meta">通知：「一緒にゆる薬膳、学んでみませんか？」
+CTA：アンケート回答</div>
+          <div class="card-body">【吹き出し1】
+
+MANAです🌿
+
+実は今
+こんな会を企画しています✨
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+🍵 自分の体質を知って
+🛒 スーパーで選べる
+　 食材を学ぶ会
+┈┈┈┈┈┈┈┈┈┈┈┈
+
+📍東京駅の近くで
+🗓️GW中に少人数で
+アットホームにやりたいなと🥰
+
+体質チェックをして
+自分に合った食材の選び方を
+一緒に学ぶ内容です💡
+
+─────────────
+
+【吹き出し2】
+
+📩 まだ正式な告知前なのですが
+こういう会があったら
+参加してみたいですか？
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+▼タップで教えてください▼
+① 🙋‍♀️ ぜひ参加したい
+② 💭 興味はある
+③ 🙏 今回は見送り
+┈┈┈┈┈┈┈┈┈┈┈┈
+
+みなさんの声を聞いてから
+詳細を決めたいと思ってます💕</div>
+        </div>
+      </div>
+      <div class="to-branch"></div>
+
+      <!-- 分岐② -->
+      <div class="branch-group">
+        <!-- 高関心 -->
+        <div class="branch-row">
+          <div class="branch-connector"></div>
+          <div class="node-card branch-label">
+            <div class="card-header">①②選択<br>（高関心）</div>
+          </div>
+          <div class="connector"></div>
+
+          <!-- 8通目 -->
+          <div class="step-group">
+            <div class="step-label">Day 22 ×3吹き出し</div>
+            <div class="node-card cta">
+              <div class="card-header">8通目：オフ会告知🌿</div>
+              <div class="card-meta">通知：「LINE登録者だけの特別なお知らせです」
+CTA：申し込みはこちら</div>
+              <div class="card-body">【吹き出し1】
+
+MANAです🌿
+
+お待たせしました💕
+オフ会の詳細をお届けします
+
+╋━━━━━━━━━━━╋
+　🍵✨ゆる薬膳オフ会✨🍵
+╋━━━━━━━━━━━╋
+
+📋 内容
+・あなたの体質チェック🔍
+・タイプ別スーパー食材の選び方🛒
+・みんなで情報交換タイム☕
+
+🗓️ 日時：GW中（5月上旬）
+📍 場所：東京駅付近
+　　　（詳細は申込後にご案内）
+
+─────────────
+
+【吹き出し2】
+
+💰 参加費：5,000円
+🔒 LINE登録者限定の会です
+
+前回の手帳オフ会と同じく
+少人数でアットホームな
+雰囲気でやりますね🥰
+
+MANAと一緒に
+自分の体質に合った食材を
+見つけましょう🍀✨
+
+─────────────
+
+【吹き出し3】
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+🌿▼申し込みはこちら▼🌿
+https://example.com/entry
+┈┈┈┈┈┈┈┈┈┈┈┈</div>
+            </div>
+          </div>
+          <div class="connector"></div>
+
+          <!-- 9通目 -->
+          <div class="step-group">
+            <div class="step-label">Day 25 ×2吹き出し</div>
+            <div class="node-card trust">
+              <div class="card-header">9通目：背中押し💌</div>
+              <div class="card-meta">通知：「私が薬膳に出会って変わったこと」</div>
+              <div class="card-body">【吹き出し1】
+
+MANAです🌿
+
+今日はちょっとだけ
+私の話を聞いてもらえますか
+
+ずっと虚弱体質で
+朝起きるのがつらくて
+「今日も頑張れるかな💦」って
+不安な日が多かったんです
+
+薬膳の考え方を知ってから
+スーパーで手に取る食材が
+少しずつ変わっていって🛒
+
+気づいたら朝が
+ちょっとだけラクになってました✨
+
+劇的な変化じゃないけれど
+「自分の体に合うものを選べてる」
+っていう安心感が大きくて🍀
+
+─────────────
+
+【吹き出し2】
+
+一人で続けるのも
+もちろんいいけど
+誰かと一緒に始めるほうが
+続くなって実感してます🤝
+
+あなたと直接お会いできたら
+すごくうれしいです🥰
+
+まだ迷っている方は
+次のメッセージも
+読んでみてくださいね💕</div>
+            </div>
+          </div>
+          <div class="connector"></div>
+
+          <!-- 10通目 -->
+          <div class="step-group">
+            <div class="step-label">Day 28 ×2吹き出し</div>
+            <div class="node-card closing">
+              <div class="card-header">10通目：最終CTA⏰</div>
+              <div class="card-meta">通知：「まもなく受付終了です」
+CTA：今すぐ申し込む</div>
+              <div class="card-body">【吹き出し1】
+
+MANAです🌿
+
+ゆる薬膳オフ会の受付が
+まもなく終了となります⏰
+
+✨残席わずかとなりました✨
+
+🔍 自分の体質タイプがわかる
+🛒 スーパー食材の選び方が学べる
+🤝 同じ悩みの仲間とつながれる
+
+この先もずっと
+「なんとなく不調」を
+抱えたままでいいですか？
+
+一歩踏み出すきっかけに
+してもらえたらうれしいです🍀
+
+─────────────
+
+【吹き出し2】
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+🌿▼今すぐ申し込む▼🌿
+https://example.com/entry
+┈┈┈┈┈┈┈┈┈┈┈┈
+
+当日お会いできるのを
+楽しみにしています🥰💕</div>
+            </div>
+          </div>
+
+        </div>
+        <!-- 見送り -->
+        <div class="branch-row">
+          <div class="branch-connector"></div>
+          <div class="node-card branch-label">
+            <div class="card-header">③or未回答<br>（見送り）</div>
+          </div>
+          <div class="connector"></div>
+          <div class="node-card disabled">
+            <div class="card-header">感謝メッセージ</div>
+            <div class="card-body">MANAです🌿
+
+回答ありがとうございました🙏✨
+
+今回のオフ会は
+タイミングが合わなくても
+大丈夫です🍀
+
+これからも
+ゆる薬膳や日々の整え方を
+お届けしていきますね
+
+またお会いできる機会を
+楽しみにしています🥰💕</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- 関心なし -->
+    <div class="branch-row">
+      <div class="branch-connector"></div>
+      <div class="node-card branch-label">
+        <div class="card-header">⑤or未回答<br>（関心なし）</div>
+      </div>
+      <div class="connector"></div>
+      <div class="node-card disabled">
+        <div class="card-header">通常配信へ戻す</div>
+        <div class="card-body">MANAです🌿
+
+アンケートの配信
+読んでくださり
+ありがとうございました🙏✨
+
+薬膳のお話は
+今回ここまでにしますね
+
+引き続き手帳のことや
+日々の整え方について
+お届けしていきますので
+よろしくお願いします🥰🍀</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

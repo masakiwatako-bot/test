@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>シナリオ設計図 - マインドマップ</title>
+<title>シナリオ設計図 - MANA・ゆる薬膳オフ会</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -10,88 +10,109 @@
     font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
     background: #fff;
     display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
-    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
     padding: 40px;
-    overflow: auto;
+    gap: 30px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 24px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background: #fafafa;
+  }
+
+  .legend-title {
+    width: 100%;
+    font-size: 14px;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 4px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #555;
+  }
+
+  .legend-color {
+    width: 28px;
+    height: 18px;
+    border-radius: 10px;
+    border: 2px solid;
+    flex-shrink: 0;
+  }
+
+  .legend-color.l-root { background: #4a90d9; border-color: #3a7bc8; }
+  .legend-color.l-empathy { background: #d6eaf8; border-color: #85b8d9; border-style: dashed; }
+  .legend-color.l-info { background: #f0f0f0; border-color: #ccc; }
+  .legend-color.l-survey { background: #fff3cd; border-color: #f0c040; border-style: dashed; }
+  .legend-color.l-trust { background: #d6eaf8; border-color: #85b8d9; }
+  .legend-color.l-cta { background: #f9e4b7; border-color: #e0b84f; }
+  .legend-color.l-closing { background: #f5c6c6; border-color: #d98a8a; }
+  .legend-color.l-disabled { background: #e8e8e8; border-color: #bbb; }
+
+  .legend-hint {
+    width: 100%;
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
   }
 
   .mindmap {
     display: flex;
     align-items: center;
-    gap: 0;
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 20px;
   }
 
   .node {
     display: flex;
     align-items: center;
-    justify-content: center;
     white-space: nowrap;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     color: #333;
-    padding: 10px 18px;
+    padding: 10px 20px;
     border-radius: 20px;
     background: #f0f0f0;
     border: 2px solid #ccc;
-    min-height: 44px;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
   }
 
-  .node.root {
-    background: #4a90d9;
-    color: #fff;
-    border-color: #3a7bc8;
-    font-size: 15px;
-  }
+  .node:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .node.selected { box-shadow: 0 0 0 3px #4a90d9; }
 
-  .node.action {
-    border-style: dashed;
-    background: #d6eaf8;
-    border-color: #85b8d9;
-  }
+  .node.root { background: #4a90d9; color: #fff; border-color: #3a7bc8; font-size: 16px; }
+  .node.action { border-style: dashed; background: #d6eaf8; border-color: #85b8d9; }
+  .node.survey { border-style: dashed; background: #fff3cd; border-color: #f0c040; }
+  .node.cta { background: #f9e4b7; border-color: #e0b84f; }
+  .node.closing { background: #f5c6c6; border-color: #d98a8a; }
+  .node.trust { background: #d6eaf8; border-color: #85b8d9; }
+  .node.disabled { background: #e8e8e8; color: #999; border-color: #bbb; }
 
-  .node.survey {
-    background: #fff3cd;
-    border-color: #f0c040;
-    border-style: dashed;
-  }
+  .connector { width: 40px; height: 2px; background: #999; flex-shrink: 0; }
+  .to-branch { width: 40px; height: 2px; background: #999; flex-shrink: 0; }
+  .merge-connector { width: 40px; height: 2px; background: #999; flex-shrink: 0; }
 
-  .node.cta {
-    background: #f8d7da;
-    border-color: #e07080;
-  }
-
-  .node.end {
-    background: #e2e3e5;
-    border-color: #aaa;
-    font-size: 13px;
-  }
-
-  .connector {
-    width: 36px;
-    height: 2px;
-    background: #999;
-    flex-shrink: 0;
-  }
-
-  .step-group {
-    display: flex;
-    align-items: center;
-  }
-
-  .branch-section {
-    display: flex;
-    align-items: center;
-  }
+  .step-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .step-label { font-size: 11px; color: #888; padding-left: 4px; }
 
   .branch-group {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 24px;
+    gap: 20px;
     position: relative;
-    padding-left: 2px;
   }
 
   .branch-group::before {
@@ -104,144 +125,633 @@
     background: #999;
   }
 
-  .branch-row {
-    display: flex;
-    align-items: center;
+  .branch-row { display: flex; align-items: center; }
+  .branch-connector { width: 30px; height: 2px; background: #999; flex-shrink: 0; }
+
+  .detail-panel {
+    width: 100%;
+    max-width: 600px;
+    min-height: 100px;
+    padding: 24px 28px;
+    border: 2px solid #ddd;
+    border-radius: 16px;
+    background: #fafafa;
+    white-space: pre-line;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #333;
   }
 
-  .branch-connector {
-    width: 30px;
-    height: 2px;
-    background: #999;
-    flex-shrink: 0;
+  .detail-panel .detail-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #4a90d9;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ddd;
   }
 
-  .phase-label {
-    font-size: 11px;
+  .detail-panel .detail-meta {
+    font-size: 12px;
     color: #888;
-    margin-bottom: 4px;
-    text-align: center;
+    margin-bottom: 8px;
   }
 
-  .node-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  .detail-panel .detail-body {
+    font-size: 14px;
+    line-height: 1.9;
   }
 
-  .day-label {
-    font-size: 10px;
-    color: #aaa;
-    margin-top: 2px;
+  .detail-panel .detail-placeholder {
+    color: #bbb;
+    font-size: 14px;
   }
 
   @media print {
     body { padding: 20px; }
+    .detail-panel { break-inside: avoid; }
   }
 </style>
 </head>
 <body>
 
+<div class="legend">
+  <div class="legend-title">🌿 ゆる薬膳オフ会シナリオ ─ 色分けの説明</div>
+  <div class="legend-item"><div class="legend-color l-root"></div>起点（シナリオ開始）</div>
+  <div class="legend-item"><div class="legend-color l-empathy"></div>導入・共感（点線）</div>
+  <div class="legend-item"><div class="legend-color l-info"></div>価値提供</div>
+  <div class="legend-item"><div class="legend-color l-survey"></div>アンケート（点線）</div>
+  <div class="legend-item"><div class="legend-color l-trust"></div>信頼構築・関係深化</div>
+  <div class="legend-item"><div class="legend-color l-cta"></div>オフ会告知・CTA</div>
+  <div class="legend-item"><div class="legend-color l-closing"></div>クロージング</div>
+  <div class="legend-item"><div class="legend-color l-disabled"></div>分岐終了</div>
+  <div class="legend-hint">※ 各ノードをクリックするとシナリオ本文が表示されます</div>
+</div>
+
 <div class="mindmap">
 
-  <!-- 起点 -->
-  <div class="node-wrapper">
-    <div class="node root">MANA 整え日記<br>LINE公式</div>
+  <div class="node root" data-detail="start">🌿 MANA LINE</div>
+  <div class="connector"></div>
+
+  <div class="step-group">
+    <div class="step-label">Day 1</div>
+    <div class="node action" data-detail="msg1">導入・共感</div>
   </div>
   <div class="connector"></div>
 
-  <!-- 1通目 -->
-  <div class="node-wrapper">
-    <div class="phase-label">序盤</div>
-    <div class="node action">1通目<br>導入・共感</div>
-    <div class="day-label">Day 1</div>
+  <div class="step-group">
+    <div class="step-label">Day 4</div>
+    <div class="node" data-detail="msg2">価値提供・気づき</div>
   </div>
   <div class="connector"></div>
 
-  <!-- 2通目 -->
-  <div class="node-wrapper">
-    <div class="node">2通目<br>価値提供・気づき</div>
-    <div class="day-label">Day 4</div>
+  <div class="step-group">
+    <div class="step-label">Day 7</div>
+    <div class="node survey" data-detail="msg3">アンケート①📩</div>
   </div>
-  <div class="connector"></div>
+  <div class="to-branch"></div>
 
-  <!-- 3通目 アンケート① -->
-  <div class="node-wrapper">
-    <div class="node survey">3通目<br>アンケート①<br>体質への関心</div>
-    <div class="day-label">Day 7</div>
-  </div>
-  <div class="connector"></div>
+  <div class="branch-group">
+    <!-- 関心あり -->
+    <div class="branch-row">
+      <div class="branch-connector"></div>
+      <div class="node" data-detail="branch1a">関心あり</div>
+      <div class="connector"></div>
+      <div class="step-group">
+        <div class="step-label">Day 10</div>
+        <div class="node" data-detail="msg4">体質別食材🛒</div>
+      </div>
+      <div class="connector"></div>
+      <div class="step-group">
+        <div class="step-label">Day 13</div>
+        <div class="node trust" data-detail="msg5">信頼構築💬</div>
+      </div>
+      <div class="connector"></div>
+      <div class="step-group">
+        <div class="step-label">Day 16</div>
+        <div class="node trust" data-detail="msg6">関係性深化🍵</div>
+      </div>
+      <div class="connector"></div>
+      <div class="step-group">
+        <div class="step-label">Day 19</div>
+        <div class="node survey" data-detail="msg7">アンケート②📩</div>
+      </div>
+      <div class="to-branch"></div>
 
-  <!-- 分岐① -->
-  <div class="branch-section">
-    <div class="branch-group">
-      <!-- 関心あり -->
-      <div class="branch-row">
-        <div class="branch-connector"></div>
-        <div class="node-wrapper">
-          <div class="phase-label">中盤（関心あり）</div>
-          <div class="node">4通目<br>体質別食材</div>
-          <div class="day-label">Day 10</div>
-        </div>
-        <div class="connector"></div>
-        <div class="node-wrapper">
-          <div class="node">5通目<br>信頼構築</div>
-          <div class="day-label">Day 13</div>
-        </div>
-        <div class="connector"></div>
-        <div class="node-wrapper">
-          <div class="node">6通目<br>関係性深化</div>
-          <div class="day-label">Day 16</div>
-        </div>
-        <div class="connector"></div>
-        <div class="node-wrapper">
-          <div class="node survey">7通目<br>アンケート②<br>参加意欲</div>
-          <div class="day-label">Day 19</div>
-        </div>
-        <div class="connector"></div>
-
-        <!-- 分岐② 内部 -->
-        <div class="branch-group">
-          <!-- 高関心 -->
-          <div class="branch-row">
-            <div class="branch-connector"></div>
-            <div class="node-wrapper">
-              <div class="phase-label">終盤（高関心）</div>
-              <div class="node cta">8通目<br>オフ会告知</div>
-              <div class="day-label">Day 22</div>
-            </div>
-            <div class="connector"></div>
-            <div class="node-wrapper">
-              <div class="node">9通目<br>背中押し</div>
-              <div class="day-label">Day 25</div>
-            </div>
-            <div class="connector"></div>
-            <div class="node-wrapper">
-              <div class="node cta">10通目<br>最終CTA</div>
-              <div class="day-label">Day 28</div>
-            </div>
+      <div class="branch-group">
+        <!-- 高関心 -->
+        <div class="branch-row">
+          <div class="branch-connector"></div>
+          <div class="node" data-detail="branch2a">高関心</div>
+          <div class="connector"></div>
+          <div class="step-group">
+            <div class="step-label">Day 22</div>
+            <div class="node cta" data-detail="msg8">オフ会告知🌿</div>
           </div>
-          <!-- 見送り -->
-          <div class="branch-row">
-            <div class="branch-connector"></div>
-            <div class="node-wrapper">
-              <div class="node end">見送り・未回答<br>→ 感謝MSG</div>
-            </div>
+          <div class="connector"></div>
+          <div class="step-group">
+            <div class="step-label">Day 25</div>
+            <div class="node trust" data-detail="msg9">背中押し💌</div>
           </div>
+          <div class="connector"></div>
+          <div class="step-group">
+            <div class="step-label">Day 28</div>
+            <div class="node closing" data-detail="msg10">最終CTA⏰</div>
+          </div>
+        </div>
+        <!-- 見送り -->
+        <div class="branch-row">
+          <div class="branch-connector"></div>
+          <div class="node disabled" data-detail="branch2b">見送り→感謝MSG</div>
         </div>
       </div>
 
-      <!-- 関心なし -->
-      <div class="branch-row">
-        <div class="branch-connector"></div>
-        <div class="node-wrapper">
-          <div class="node end">関心なし・未回答<br>→ 通常配信へ</div>
-        </div>
-      </div>
+    </div>
+    <!-- 関心なし -->
+    <div class="branch-row">
+      <div class="branch-connector"></div>
+      <div class="node disabled" data-detail="branch1b">関心なし→通常配信</div>
     </div>
   </div>
 
 </div>
+
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-placeholder">↑ ノードをクリックするとシナリオ本文が表示されます</div>
+</div>
+
+<script>
+const details = {
+  start: {
+    title: `🌿 MANA 整え日記 LINE公式`,
+    meta: ``,
+    body: `既存フォロワーへ薬膳シナリオ開始\n（30日間・全10通・アンケート2回分岐）`
+  },
+  msg1: {
+    title: `■ 1通目（配信日：Day 1・20:00）×2吹き出し`,
+    meta: `通知テキスト：「40代、なんとなく不調が続いていませんか？」\n役割：導入・共感（P＋A）`,
+    body: `【吹き出し1】
+
+こんにちは、MANAです🌿✨
+
+突然ですが
+最近こんなこと感じていませんか？
+
+☁️ 朝起きても疲れが抜けない
+🧊 手足がいつも冷たい
+🌀 胃腸の調子がなんだか不安定
+
+40代に入ってから
+「無理ができない自分」を
+どんどん実感するようになって💦
+
+実は私もずっとそうだったんです
+
+─────────────
+
+【吹き出し2】
+
+🍀これから何回かに分けて
+私が続けている
+"ゆる薬膳"のお話をしますね
+
+通知が気になる方は
+ミュート設定もできるので
+ご自身のペースで
+読んでもらえたらうれしいです🥰`
+  },
+  msg2: {
+    title: `■ 2通目（配信日：Day 4・20:00）×2吹き出し`,
+    meta: `通知テキスト：「スーパーの"あの食材"、実は体を冷やしてました」\n役割：価値提供・気づき（P）`,
+    body: `【吹き出し1】
+
+MANAです🌿
+
+ふだんスーパーで手に取る食材🛒
+「体を温めるもの」と
+「冷やすもの」があるって
+知っていますか？
+
+🔥温める → しょうが・ねぎ
+🧊冷やす → トマト・きゅうり
+
+夏野菜は体を冷やす性質があって
+冷え性の人が冬に食べすぎると
+逆効果になることも⚠️
+
+私もこれを知ったとき
+「毎日サラダ食べてたけど
+　逆に冷やしてたんだ…😳」って
+びっくりしました
+
+─────────────
+
+【吹き出し2】
+
+🍀次回はもう少し詳しく
+体質タイプ別のお話をしますね
+
+ちょっとした知識で
+毎日の買い物が変わりますよ✨`
+  },
+  msg3: {
+    title: `■ 3通目（配信日：Day 7・20:00）×2吹き出し`,
+    meta: `通知テキスト：「体質は大きく5タイプ、あなたはどれ？」\n役割：価値提供＋アンケート①（S）\nCTA：アンケート回答`,
+    body: `【吹き出し1】
+
+MANAです🌿
+
+薬膳の世界では
+体質を大きく5つのタイプに
+分けて考えます✨
+
+🧊 冷えやすいタイプ
+😴 疲れやすいタイプ
+🌀 胃腸が弱いタイプ
+🌸 肌が揺らぎやすいタイプ
+💭 ストレスを溜めやすいタイプ
+
+タイプによって
+合う食材が全然違うんです💡
+
+自分がどのタイプか
+気になりませんか？
+
+─────────────
+
+【吹き出し2】
+
+📩 よかったら教えてください🥰
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+あなたが一番気になる不調は
+どれですか？
+┈┈┈┈┈┈┈┈┈┈┈┈
+
+▼タップで回答▼
+① 🧊 冷え
+② 😴 疲れやすさ
+③ 🌀 胃腸の不調
+④ 🌸 肌の揺らぎ
+⑤ 🙅‍♀️ 特にない
+
+回答いただけたら
+タイプに合った食材のお話を
+お届けしますね💕`
+  },
+  branch1a: {
+    title: `分岐①：関心あり（①〜④選択）`,
+    meta: ``,
+    body: `体質への関心が確認できた方\n→ 4通目以降の教育ファネルへ進む`
+  },
+  branch1b: {
+    title: `分岐①：関心なし（⑤or未回答）→ 通常配信へ`,
+    meta: `通知テキスト：「MANAからのお礼です💌」`,
+    body: `MANAです🌿
+
+アンケートの配信
+読んでくださり
+ありがとうございました🙏✨
+
+薬膳のお話は
+今回ここまでにしますね
+
+引き続き手帳のことや
+日々の整え方について
+お届けしていきますので
+よろしくお願いします🥰🍀`
+  },
+  msg4: {
+    title: `■ 4通目（配信日：Day 10・20:00）×2吹き出し【関心あり層】`,
+    meta: `通知テキスト：「あなたのタイプに合う"スーパー食材"3選」\n役割：価値提供・パーソナライズ（S）`,
+    body: `【吹き出し1】
+
+MANAです🌿
+
+アンケートへの回答
+ありがとうございました🙏✨
+
+今日はタイプ別に
+スーパーで買える
+おすすめ食材を紹介しますね🛒
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+🧊 冷えタイプ
+→ しょうが・ねぎ・かぼちゃ
+
+😴 疲れタイプ
+→ 山芋・鶏むね肉・なつめ
+
+🌀 胃腸タイプ
+→ キャベツ・大根・お米
+
+🌸 肌揺らぎタイプ
+→ 白きくらげ・豆乳・はと麦
+┈┈┈┈┈┈┈┈┈┈┈┈
+
+どれも特別なものじゃなくて
+いつものスーパーに
+並んでます💡
+
+─────────────
+
+【吹き出し2】
+
+私は疲れ＋冷えタイプで🙋‍♀️
+しょうがと山芋を
+意識して取り入れるようにしたら
+朝の調子が変わりました✨
+
+まずは1つだけ🍀
+今日の買い物で
+試してみてください🥰`
+  },
+  msg5: {
+    title: `■ 5通目（配信日：Day 13・20:00）×2吹き出し【関心あり層】`,
+    meta: `通知テキスト：「試した方から"朝が変わった"の声が届いてます」\n役割：信頼構築・社会的証明（S）`,
+    body: `【吹き出し1】
+
+MANAです🌿
+
+前回の食材の話に
+メッセージをくれた方が
+何人かいらっしゃって💌
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+💬「しょうがを意識したら
+　朝の目覚めがラクに✨」
+
+💬「かぼちゃスープを
+　週2で作るようになりました🎃」
+┈┈┈┈┈┈┈┈┈┈┈┈
+
+こういう声をいただくと
+本当にうれしくなります🥹
+
+難しいことじゃなくて
+いつもの食材をちょっと意識する
+それだけで変わるんですよね💡
+
+─────────────
+
+【吹き出し2】
+
+私もまだまだ勉強中ですが🍀
+ゆる薬膳をもっと
+深めていきたいなと思ってて
+
+実はちょっと
+考えていることがあるんです🤭
+
+また近いうちに
+お話しさせてくださいね🥰`
+  },
+  msg6: {
+    title: `■ 6通目（配信日：Day 16・20:00）×2吹き出し【関心あり層】`,
+    meta: `通知テキスト：「私がオフ会をやりたいと思った理由」\n役割：関係性深化・自己開示（O前振り）`,
+    body: `【吹き出し1】
+
+MANAです🌿
+
+前回ちらっとお話しした
+「考えていること」🤭
+
+実は薬膳のことを
+リアルで一緒に学べる場を
+作りたいなと思っていて✨
+
+手帳のオフ会をやったとき🗓️
+画面越しじゃなくて
+直接会って話すことで
+生まれるものがあるって
+すごく感じたんです
+
+あのアットホームな空気感を
+薬膳でもやりたいなって🍵
+
+─────────────
+
+【吹き出し2】
+
+一人で食材を調べるより
+みんなで「これいいよ✨」って
+教え合えたら
+楽しそうだなって🥰
+
+もし興味があったら
+次のメッセージで
+ちょっと聞かせてくださいね💕`
+  },
+  msg7: {
+    title: `■ 7通目（配信日：Day 19・20:00）×2吹き出し【関心あり層】`,
+    meta: `通知テキスト：「一緒にゆる薬膳、学んでみませんか？」\n役割：アンケート②・提案（O）\nCTA：アンケート回答`,
+    body: `【吹き出し1】
+
+MANAです🌿
+
+実は今
+こんな会を企画しています✨
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+🍵 自分の体質を知って
+🛒 スーパーで選べる
+　 食材を学ぶ会
+┈┈┈┈┈┈┈┈┈┈┈┈
+
+📍東京駅の近くで
+🗓️GW中に少人数で
+アットホームにやりたいなと🥰
+
+体質チェックをして
+自分に合った食材の選び方を
+一緒に学ぶ内容です💡
+
+─────────────
+
+【吹き出し2】
+
+📩 まだ正式な告知前なのですが
+こういう会があったら
+参加してみたいですか？
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+▼タップで教えてください▼
+① 🙋‍♀️ ぜひ参加したい
+② 💭 興味はある
+③ 🙏 今回は見送り
+┈┈┈┈┈┈┈┈┈┈┈┈
+
+みなさんの声を聞いてから
+詳細を決めたいと思ってます💕`
+  },
+  branch2a: {
+    title: `分岐②：高関心（①②選択）`,
+    meta: ``,
+    body: `参加意欲が確認できた方\n→ 8通目以降のオフ会告知へ進む`
+  },
+  branch2b: {
+    title: `分岐②：見送り（③or未回答）→ 感謝メッセージ`,
+    meta: `通知テキスト：「MANAからお礼があります💌」`,
+    body: `MANAです🌿
+
+回答ありがとうございました🙏✨
+
+今回のオフ会は
+タイミングが合わなくても
+大丈夫です🍀
+
+これからも
+ゆる薬膳や日々の整え方を
+お届けしていきますね
+
+またお会いできる機会を
+楽しみにしています🥰💕`
+  },
+  msg8: {
+    title: `■ 8通目（配信日：Day 22・20:00）×3吹き出し【高関心層】`,
+    meta: `通知テキスト：「LINE登録者だけの特別なお知らせです」\n役割：オフ会詳細告知（O）\nCTA：「申し込みはこちら」`,
+    body: `【吹き出し1】
+
+MANAです🌿
+
+お待たせしました💕
+オフ会の詳細をお届けします
+
+╋━━━━━━━━━━━╋
+　🍵✨ゆる薬膳オフ会✨🍵
+╋━━━━━━━━━━━╋
+
+📋 内容
+・あなたの体質チェック🔍
+・タイプ別スーパー食材の選び方🛒
+・みんなで情報交換タイム☕
+
+🗓️ 日時：GW中（5月上旬）
+📍 場所：東京駅付近
+　　　（詳細は申込後にご案内）
+
+─────────────
+
+【吹き出し2】
+
+💰 参加費：5,000円
+🔒 LINE登録者限定の会です
+
+前回の手帳オフ会と同じく
+少人数でアットホームな
+雰囲気でやりますね🥰
+
+MANAと一緒に
+自分の体質に合った食材を
+見つけましょう🍀✨
+
+─────────────
+
+【吹き出し3】
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+🌿▼申し込みはこちら▼🌿
+https://example.com/entry
+┈┈┈┈┈┈┈┈┈┈┈┈`
+  },
+  msg9: {
+    title: `■ 9通目（配信日：Day 25・20:00）×2吹き出し【高関心層】`,
+    meta: `通知テキスト：「私が薬膳に出会って変わったこと」\n役割：背中押し・自己開示（N）`,
+    body: `【吹き出し1】
+
+MANAです🌿
+
+今日はちょっとだけ
+私の話を聞いてもらえますか
+
+ずっと虚弱体質で
+朝起きるのがつらくて
+「今日も頑張れるかな💦」って
+不安な日が多かったんです
+
+薬膳の考え方を知ってから
+スーパーで手に取る食材が
+少しずつ変わっていって🛒
+
+気づいたら朝が
+ちょっとだけラクになってました✨
+
+劇的な変化じゃないけれど
+「自分の体に合うものを選べてる」
+っていう安心感が大きくて🍀
+
+─────────────
+
+【吹き出し2】
+
+一人で続けるのも
+もちろんいいけど
+誰かと一緒に始めるほうが
+続くなって実感してます🤝
+
+あなたと直接お会いできたら
+すごくうれしいです🥰
+
+まだ迷っている方は
+次のメッセージも
+読んでみてくださいね💕`
+  },
+  msg10: {
+    title: `■ 10通目（配信日：Day 28・20:00）×2吹き出し【高関心層】`,
+    meta: `通知テキスト：「まもなく受付終了です」\n役割：最終クロージング（A）\nCTA：「今すぐ申し込む」`,
+    body: `【吹き出し1】
+
+MANAです🌿
+
+ゆる薬膳オフ会の受付が
+まもなく終了となります⏰
+
+✨残席わずかとなりました✨
+
+🔍 自分の体質タイプがわかる
+🛒 スーパー食材の選び方が学べる
+🤝 同じ悩みの仲間とつながれる
+
+この先もずっと
+「なんとなく不調」を
+抱えたままでいいですか？
+
+一歩踏み出すきっかけに
+してもらえたらうれしいです🍀
+
+─────────────
+
+【吹き出し2】
+
+┈┈┈┈┈┈┈┈┈┈┈┈
+🌿▼今すぐ申し込む▼🌿
+https://example.com/entry
+┈┈┈┈┈┈┈┈┈┈┈┈
+
+当日お会いできるのを
+楽しみにしています🥰💕`
+  }
+};
+
+document.querySelectorAll('.node[data-detail]').forEach(node => {
+  node.addEventListener('click', () => {
+    document.querySelectorAll('.node.selected').forEach(n => n.classList.remove('selected'));
+    node.classList.add('selected');
+
+    const key = node.dataset.detail;
+    const d = details[key];
+    const panel = document.getElementById('detailPanel');
+
+    if (d) {
+      panel.innerHTML = `
+        <div class="detail-title">${d.title}</div>
+        ${d.meta ? `<div class="detail-meta">${d.meta.replace(/\n/g, '<br>')}</div>` : ''}
+        <div class="detail-body">${d.body.replace(/\n/g, '<br>')}</div>
+      `;
+    }
+  });
+});
+</script>
 
 </body>
 </html>
