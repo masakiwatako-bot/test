@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>シナリオ設計図 - マインドマップ</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    background: #fff;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 40px;
+    overflow: auto;
+  }
+
+  .mindmap {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .node {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    padding: 10px 18px;
+    border-radius: 20px;
+    background: #f0f0f0;
+    border: 2px solid #ccc;
+    min-height: 44px;
+  }
+
+  .node.root {
+    background: #4a90d9;
+    color: #fff;
+    border-color: #3a7bc8;
+    font-size: 15px;
+  }
+
+  .node.action {
+    border-style: dashed;
+    background: #d6eaf8;
+    border-color: #85b8d9;
+  }
+
+  .node.survey {
+    background: #fff3cd;
+    border-color: #f0c040;
+    border-style: dashed;
+  }
+
+  .node.cta {
+    background: #f8d7da;
+    border-color: #e07080;
+  }
+
+  .node.end {
+    background: #e2e3e5;
+    border-color: #aaa;
+    font-size: 13px;
+  }
+
+  .connector {
+    width: 36px;
+    height: 2px;
+    background: #999;
+    flex-shrink: 0;
+  }
+
+  .step-group {
+    display: flex;
+    align-items: center;
+  }
+
+  .branch-section {
+    display: flex;
+    align-items: center;
+  }
+
+  .branch-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    position: relative;
+    padding-left: 2px;
+  }
+
+  .branch-group::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 22px;
+    bottom: 22px;
+    width: 2px;
+    background: #999;
+  }
+
+  .branch-row {
+    display: flex;
+    align-items: center;
+  }
+
+  .branch-connector {
+    width: 30px;
+    height: 2px;
+    background: #999;
+    flex-shrink: 0;
+  }
+
+  .phase-label {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+
+  .node-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .day-label {
+    font-size: 10px;
+    color: #aaa;
+    margin-top: 2px;
+  }
+
+  @media print {
+    body { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="mindmap">
+
+  <!-- 起点 -->
+  <div class="node-wrapper">
+    <div class="node root">MANA 整え日記<br>LINE公式</div>
+  </div>
+  <div class="connector"></div>
+
+  <!-- 1通目 -->
+  <div class="node-wrapper">
+    <div class="phase-label">序盤</div>
+    <div class="node action">1通目<br>導入・共感</div>
+    <div class="day-label">Day 1</div>
+  </div>
+  <div class="connector"></div>
+
+  <!-- 2通目 -->
+  <div class="node-wrapper">
+    <div class="node">2通目<br>価値提供・気づき</div>
+    <div class="day-label">Day 4</div>
+  </div>
+  <div class="connector"></div>
+
+  <!-- 3通目 アンケート① -->
+  <div class="node-wrapper">
+    <div class="node survey">3通目<br>アンケート①<br>体質への関心</div>
+    <div class="day-label">Day 7</div>
+  </div>
+  <div class="connector"></div>
+
+  <!-- 分岐① -->
+  <div class="branch-section">
+    <div class="branch-group">
+      <!-- 関心あり -->
+      <div class="branch-row">
+        <div class="branch-connector"></div>
+        <div class="node-wrapper">
+          <div class="phase-label">中盤（関心あり）</div>
+          <div class="node">4通目<br>体質別食材</div>
+          <div class="day-label">Day 10</div>
+        </div>
+        <div class="connector"></div>
+        <div class="node-wrapper">
+          <div class="node">5通目<br>信頼構築</div>
+          <div class="day-label">Day 13</div>
+        </div>
+        <div class="connector"></div>
+        <div class="node-wrapper">
+          <div class="node">6通目<br>関係性深化</div>
+          <div class="day-label">Day 16</div>
+        </div>
+        <div class="connector"></div>
+        <div class="node-wrapper">
+          <div class="node survey">7通目<br>アンケート②<br>参加意欲</div>
+          <div class="day-label">Day 19</div>
+        </div>
+        <div class="connector"></div>
+
+        <!-- 分岐② 内部 -->
+        <div class="branch-group">
+          <!-- 高関心 -->
+          <div class="branch-row">
+            <div class="branch-connector"></div>
+            <div class="node-wrapper">
+              <div class="phase-label">終盤（高関心）</div>
+              <div class="node cta">8通目<br>オフ会告知</div>
+              <div class="day-label">Day 22</div>
+            </div>
+            <div class="connector"></div>
+            <div class="node-wrapper">
+              <div class="node">9通目<br>背中押し</div>
+              <div class="day-label">Day 25</div>
+            </div>
+            <div class="connector"></div>
+            <div class="node-wrapper">
+              <div class="node cta">10通目<br>最終CTA</div>
+              <div class="day-label">Day 28</div>
+            </div>
+          </div>
+          <!-- 見送り -->
+          <div class="branch-row">
+            <div class="branch-connector"></div>
+            <div class="node-wrapper">
+              <div class="node end">見送り・未回答<br>→ 感謝MSG</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 関心なし -->
+      <div class="branch-row">
+        <div class="branch-connector"></div>
+        <div class="node-wrapper">
+          <div class="node end">関心なし・未回答<br>→ 通常配信へ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
